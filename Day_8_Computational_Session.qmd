@@ -1,0 +1,68 @@
+---
+title: "Day 8 Computational Session"
+format: html
+editor: visual
+---
+
+## Review basics of ggplot
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+
+
+library(patchwork)
+library(ggrepel)
+library(gghighlight)
+library(paletteer)
+```
+
+Read in data
+
+```{r}
+lizards <- read_csv(here("data_tidy","lizards.csv"))
+```
+
+Data wrangling to make a new subset from lizards
+
+-   limit data to only contain western whiptails , colorado checkered, eastern fence lizards
+
+-   add a new column with total length converted to centimeters,
+
+-   group by species and sites
+
+-   return a summary table with mean total length and standard deviation of total length by species and site
+
+```{r}
+lizards_subset <- lizards %>% 
+  filter(common_name %in% c("western whiptail", "colorado checkered","eastern fence")) %>% 
+  mutate(total_length_cm = total_length / 10) %>% 
+  group_by(common_name, site) %>% 
+  summarize(mean_total_length = mean(total_length , na.rm = TRUE),
+            sd_total_length = sd(total_length , na.rm = TRUE))
+```
+
+```{r}
+#how to make a scatterplot total_length vs. weight
+ggplot(data = lizards, aes(x = total_length, y = weight))+
+  geom_point(aes(color = weight)) +
+  scale_y_continuous(limits = c(0,100),
+                     breaks = seq(from = 0, to = 100, by = 20 ),
+                     expand = c(0,0)) +
+  scale_color_gradientn(colors = c("yellow","orange","purple"))
+  
+  
+#scales = free puts each common_name on its own scale.
+```
+
+```{r}
+#use dplyr::count to find the total number of lizards by common name in the lizards dataset
+lizard_counts <- lizards %>% 
+  dplyr::count(common_name)
+```
+
+```{r}
+ggplot(data = lizard_counts , aes(x = n , y = fct_reorder(common_name , n))) +
+  geom_col() 
+```
